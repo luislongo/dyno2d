@@ -17,12 +17,21 @@ export type Joint = {
 
 export type Edge = {
   id: string;
-  startId: string;
-  endId: string;
+  start: string;
+  end: string;
+};
+
+export type StaticCharges = {
+  joint: string;
+  value: number;
+  phase: number;
 };
 
 export type Structure = {
-  joints: Joint[];
+  joints: {
+    [key: string]: Joint;
+  };
   edges: Edge[];
   restrictions: Restriction[];
+  staticCharges: StaticCharges[];
 };
