@@ -48,17 +48,17 @@
   ],
   "staticCharges": [
     {
-      "joint": "1",
+      "joint": "0",
       "value": 1.0,
       "phase": 0.0
     },
     {
-      "joint": "2",
+      "joint": "1",
       "value": 1.0,
       "phase": 1.5707963267948966
     },
     {
-      "joint": "3",
+      "joint": "2",
       "value": 1.0,
       "phase": 2
     }
