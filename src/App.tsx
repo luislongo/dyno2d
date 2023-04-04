@@ -76,7 +76,9 @@ function App() {
 
       const position = joints[charge.joint].position;
       arrow.position.set(position.x, position.y, 0);
+      arrow.scale.x = Math.sign(charge.value ? charge.value : 1);
       arrow.rotation.z = charge.phase;
+
       scene.add(arrow);
     });
 
