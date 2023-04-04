@@ -20,8 +20,15 @@ export type Edge = {
   end: string;
 };
 
+export type StaticCharge = {
+  joint: string;
+  value: number;
+  phase: number;
+};
+
 export type Structure = {
   joints: { [key: string]: Joint };
   edges: Edge[];
   restrictions: Restriction[];
+  staticCharges: StaticCharge[];
 };

@@ -20,7 +20,7 @@ function App() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.position.z = 5;
 
-    const { joints, edges, restrictions } = mockStr as Structure;
+    const { joints, edges, restrictions, staticCharges } = mockStr as Structure;
     // Draw joints
     Object.values(joints).forEach((joint) => {
       const geometry = new Three.SphereGeometry(0.1, 32, 32);
@@ -32,8 +32,6 @@ function App() {
 
     // Draw edges
     edges.forEach((edge) => {
-      console.log("Start joint position", joints[edge.start]);
-      console.log("End joint position", joints[edge.end]);
       const length = Math.sqrt(
         Math.pow(
           joints[edge.start].position.x - joints[edge.end].position.x,
@@ -59,6 +57,27 @@ function App() {
       );
 
       scene.add(cube);
+    });
+
+    // Draw charges
+    staticCharges.forEach((charge) => {
+      const shape = new Three.Shape()
+        .moveTo(0, -0.025)
+        .lineTo(0.5, -0.025)
+        .lineTo(0.5, -0.1)
+        .lineTo(0.65, 0)
+        .lineTo(0.5, 0.1)
+        .lineTo(0.5, 0.025)
+        .lineTo(0, 0.025)
+        .lineTo(0, -0.025);
+      const geometry = new Three.ShapeGeometry(shape);
+      const material = new Three.MeshBasicMaterial({ color: 0xff0000 });
+      const arrow = new Three.Mesh(geometry, material);
+
+      const position = joints[charge.joint].position;
+      arrow.position.set(position.x, position.y, 0);
+      arrow.rotation.z = charge.phase;
+      scene.add(arrow);
     });
 
     return () => {
