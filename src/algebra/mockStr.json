@@ -1,47 +1,56 @@
 {
-  "joints": [
-    {
-      "id": "0",
+  "joints": {
+    "1": {
       "position": {
         "x": 0.0,
         "y": 0.0
       }
     },
-    {
-      "id": "1",
+    "2": {
       "position": {
         "x": 1.0,
         "y": 1.0
       }
     },
-    {
-      "id": "2",
+    "3": {
       "position": {
         "x": 2.0,
         "y": 0.0
       }
     }
-  ],
+  },
   "edges": [
     {
       "id": "0",
-      "start": "0",
-      "end": "1"
+      "start": "1",
+      "end": "2"
     },
     {
       "id": "1",
-      "start": "1",
-      "end": "2"
+      "start": "2",
+      "end": "3"
     }
   ],
   "restrictions": [
     {
-      "joint": "0",
+      "joint": "1",
       "type": "xy"
     },
     {
-      "joint": "2",
-      "type": "x"
+      "joint": "3",
+      "type": "y"
+    }
+  ],
+  "staticCharges": [
+    {
+      "joint": "1",
+      "value": 1.0,
+      "phase": 1.5707963267948966
+    },
+    {
+      "joint": "3",
+      "value": -1.0,
+      "phase": 0.0
     }
   ]
 }
