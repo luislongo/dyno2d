@@ -11,24 +11,18 @@ export type Vector2 = {
 };
 
 export type Joint = {
+  id: string;
   position: Vector2;
 };
 
 export type Edge = {
   id: string;
-  start: string;
-  end: string;
-};
-
-export type StaticCharge = {
-  joint: string;
-  value: number;
-  phase: number;
+  startId: string;
+  endId: string;
 };
 
 export type Structure = {
-  joints: { [key: string]: Joint };
+  joints: Joint[];
   edges: Edge[];
   restrictions: Restriction[];
-  staticCharges: StaticCharge[];
 };
