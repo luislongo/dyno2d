@@ -33,12 +33,12 @@
   ],
   "restrictions": [
     {
-      "joint": "0",
+      "joint": "1",
       "type": "xy"
     },
     {
-      "joint": "2",
-      "type": "x"
+      "joint": "3",
+      "type": "y"
     }
   ],
   "staticCharges": [

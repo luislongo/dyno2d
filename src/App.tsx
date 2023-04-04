@@ -80,6 +80,29 @@ function App() {
       scene.add(arrow);
     });
 
+    // Draw restrictions
+    restrictions.forEach((restriction) => {
+      const shape = new Three.Shape();
+      shape.moveTo(0, 0);
+      shape.lineTo(0.25, -0.25);
+      shape.lineTo(-0.25, -0.25);
+      shape.lineTo(0, 0);
+
+      const geometry = new Three.ShapeGeometry(shape);
+      const material = new Three.MeshBasicMaterial({ color: 0x0000ff });
+
+      const triangle = new Three.Mesh(geometry, material);
+      const position = joints[restriction.joint].position;
+
+      if (restriction.type === "y") {
+        triangle.rotation.z = Math.PI / 2;
+      }
+
+      triangle.position.set(position.x, position.y, 0);
+
+      scene.add(triangle);
+    });
+
     return () => {
       canvasRef.current?.removeChild(renderer.domElement);
     };
