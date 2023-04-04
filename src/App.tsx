@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef, useEffect } from "react";
 import * as Three from "three";
 import "./App.css";
 import mockStr from "./algebra/mockStr.json";
