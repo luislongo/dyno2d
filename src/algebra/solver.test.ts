@@ -38,7 +38,5 @@ describe("Solver", () => {
   it("Should be able to parse a structure from a JSON", () => {
     const json = require("./mockStr.json");
     const structure = json as Structure;
-
-    console.log(structure);
   });
 });

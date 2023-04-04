@@ -114,7 +114,29 @@ function App() {
     renderer.render(scene, camera);
   }, 1000 / 60);
 
-  return <div className="canvas" ref={canvasRef}></div>;
+  const handleCanvasScroll = (e: React.WheelEvent<HTMLDivElement>) => {
+    camera.position.z += e.deltaY / 300;
+    e.preventDefault();
+  };
+
+  window.addEventListener("keypress", (e) => {
+    if (e.code === "KeyA") {
+      camera.position.x -= 0.1;
+    }
+    if (e.code === "KeyD") {
+      camera.position.x += 0.1;
+    }
+    if (e.code === "KeyW") {
+      camera.position.y += 0.1;
+    }
+    if (e.code === "KeyS") {
+      camera.position.y -= 0.1;
+    }
+  });
+
+  return (
+    <div className="canvas" onWheel={handleCanvasScroll} ref={canvasRef}></div>
+  );
 }
 
 export default App;
