@@ -1,7 +1,7 @@
 import * as Math from "mathjs";
 
 export type Restriction = {
-  joint: string;
+  joint: number;
   type: "x" | "y" | "xy";
 };
 
@@ -11,26 +11,26 @@ export type Vector2 = {
 };
 
 export type Joint = {
-  id: string;
+  id: number;
   position: Vector2;
 };
 
 export type Edge = {
   id: string;
-  start: string;
-  end: string;
+  start: number;
+  end: number;
+  E: number;
+  A: number;
 };
 
 export type StaticCharges = {
-  joint: string;
+  joint: number;
   value: number;
   phase: number;
 };
 
 export type Structure = {
-  joints: {
-    [key: string]: Joint;
-  };
+  joints: Joint[];
   edges: Edge[];
   restrictions: Restriction[];
   staticCharges: StaticCharges[];

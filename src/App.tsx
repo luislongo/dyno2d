@@ -3,16 +3,20 @@ import * as Three from "three";
 import "./App.css";
 import mockStr from "./algebra/mockStr.json";
 import { Structure } from "./parser/Parser";
+import { DifferentialEquation } from "./algebra/diffEq";
 
 function App() {
   const renderer = new Three.WebGLRenderer();
   const scene = new Three.Scene();
-  const camera = new Three.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
+  const camera = new Three.OrthographicCamera(
+    0.2* window.innerWidth / -200,
+    0.8*window.innerWidth / 200,
+    0.8*window.innerHeight / 200,
+    0.2* window.innerHeight / -200,
     0.1,
     1000
-  );
+    );
+
   const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -103,6 +107,25 @@ function App() {
       triangle.position.set(position.x, position.y, 0);
 
       scene.add(triangle);
+    });
+
+    //Draw displacement
+    const diffEq = new DifferentialEquation(mockStr  as Structure);
+    console.log(diffEq.U)
+    joints.forEach((joint, id) => {
+      const geometry = new Three.SphereGeometry(0.05, 32, 32);
+      const material = new Three.MeshBasicMaterial({ color: 0x00ffff });
+      const sphere = new Three.Mesh(geometry, material);
+
+      const u = {
+        x: diffEq.U.get([2*id, 0]),
+        y: diffEq.U.get([2*id + 1, 0])
+      }
+
+      console.log(u)
+
+      sphere.position.set(joint.position.x + u.x, joint.position.y + u.y, 1.5);
+      scene.add(sphere);
     });
 
     return () => {
