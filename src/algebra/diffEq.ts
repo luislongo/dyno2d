@@ -80,7 +80,7 @@ export class DifferentialEquation {
       const {joint, value, frequency} = charge;
       const index = 2*joint;
 
-      Qt.set([index, 0], Qt.get([index, 0]) + value * MATH.cos(frequency * this.t));
+      Qt.set([index, 0], Qt.get([index, 0]) + value * MATH.cos(frequency * this.t + charge.phase));
     });
 
     this.redQ = Qt.subset(MATH.index(this.freeDoFs, 0)).map((value) => {
