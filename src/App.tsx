@@ -16,47 +16,17 @@ function App() {
     0.1,
     1000
     );
+
   const canvasRef = useRef<HTMLDivElement>(null);
-  const str = mockStr as Structure;
-  const diffEq = new DifferentialEquation(str);
-  const displacementMarkers = str.joints.reduce((acc, joint, id) => {
-    const geometry = new Three.SphereGeometry(0.05, 32, 32);
-    const material = new Three.MeshBasicMaterial({ color: 0x00ffff });
-    const sphere = new Three.Mesh(geometry, material);
-    sphere.position.set(joint.position.x, joint.position.y, 2.5);
-       
-    return [...acc, sphere]
-  }, [] as Three.Mesh[]);
-  const dynamicChargesMeshes = str.dynamicCharges.reduce((acc, charge, id) => {
-    const shape = new Three.Shape()
-      .moveTo(0, -0.025)
-      .lineTo(0.5, -0.025)
-      .lineTo(0.5, -0.1)
-      .lineTo(0.65, 0)
-      .lineTo(0.5, 0.1)
-      .lineTo(0.5, 0.025)
-      .lineTo(0, 0.025)
-      .lineTo(0, -0.025);
-    const geometry = new Three.ShapeGeometry(shape);
-    const material = new Three.MeshBasicMaterial({ color: 0xff0000 });
-    const arrow = new Three.Mesh(geometry, material);
-
-    const position = str.joints[charge.joint].position;
-    arrow.position.set(position.x, position.y, 2.5);
-    
-    return [...acc, arrow]
-  }, [] as Three.Mesh[]);
-
-  const loading = useRef<boolean>(true);
 
   useEffect(() => {
     canvasRef.current?.appendChild(renderer.domElement);
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.position.z = 5;
 
-    const { joints, edges, restrictions, staticCharges, pointMasses, dynamicCharges } = mockStr as Structure;
+    const { joints, edges, restrictions, staticCharges } = mockStr as Structure;
     // Draw joints
-    joints.forEach((joint) => {
+    Object.values(joints).forEach((joint) => {
       const geometry = new Three.SphereGeometry(0.1, 32, 32);
       const material = new Three.MeshBasicMaterial({ color: 0xffff00 });
       const sphere = new Three.Mesh(geometry, material);
@@ -130,7 +100,7 @@ function App() {
       const triangle = new Three.Mesh(geometry, material);
       const position = joints[restriction.joint].position;
 
-      if (restriction.type === "x") {
+      if (restriction.type === "y") {
         triangle.rotation.z = Math.PI / 2;
       }
 
@@ -140,22 +110,23 @@ function App() {
     });
 
     //Draw displacement
-    scene.add(...displacementMarkers)
-    scene.add(...dynamicChargesMeshes)
-
-    //Draw masses
-    pointMasses.forEach((mass) => {
+    const diffEq = new DifferentialEquation(mockStr  as Structure);
+    console.log(diffEq.U)
+    joints.forEach((joint, id) => {
       const geometry = new Three.SphereGeometry(0.05, 32, 32);
-      const material = new Three.MeshBasicMaterial({ color: 0x000000 });
+      const material = new Three.MeshBasicMaterial({ color: 0x00ffff });
       const sphere = new Three.Mesh(geometry, material);
 
-      const position = joints[mass.joint].position;
-      sphere.position.set(position.x, position.y, 1.5);
+      const u = {
+        x: diffEq.U.get([2*id, 0]),
+        y: diffEq.U.get([2*id + 1, 0])
+      }
 
+      console.log(u)
+
+      sphere.position.set(joint.position.x + u.x, joint.position.y + u.y, 1.5);
       scene.add(sphere);
-    })
-
-    loading.current = false;
+    });
 
     return () => {
       canvasRef.current?.removeChild(renderer.domElement);
@@ -163,19 +134,6 @@ function App() {
   }, []);
 
   setInterval(() => {
-    if(loading.current) return;
-
-    diffEq.dynamicSolveWithRungeKutta(0.01);
-    const { joints, dynamicCharges } = mockStr as Structure;
-    displacementMarkers.forEach((marker, id) => {
-      marker.position.x = joints[id].position.x + diffEq.U.get([2* id, 0])
-      marker.position.y = joints[id].position.y + diffEq.U.get([2*id + 1, 0])
-    })
-
-    dynamicCharges.forEach((charge, id) => {
-      dynamicChargesMeshes[id].rotation.z = charge.phase + charge.frequency * diffEq.t
-    })
-
     renderer.render(scene, camera);
   }, 1000 / 60);
 
@@ -197,7 +155,6 @@ function App() {
     if (e.code === "KeyS") {
       camera.position.y -= 0.1;
     }
-
   });
 
   return (

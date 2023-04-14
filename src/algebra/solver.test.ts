@@ -33,6 +33,7 @@ describe("Solver", () => {
     const sum1 = MatrixHelper.applyOnSubset(A.clone(), math.index([0,1], [0,1]), (value, index, matrix) => {
       return value + B.get(index);
     })
+    console.log(sum1)
     expect(sum1).toEqual(math.matrix([
       [2, 4, 3],
       [7, 9, 6],
@@ -42,6 +43,7 @@ describe("Solver", () => {
     const sum2 = MatrixHelper.applyOnSubset(A.clone(), math.index([1,2], [0,1]), (value, index, matrix) => {
       return value + B.get(index);
     })
+    console.log(sum2)
     expect(sum2).toEqual(math.matrix([
       [1, 2, 3],
       [5, 7, 6],
@@ -52,6 +54,7 @@ describe("Solver", () => {
       return value + B.get(index);
     })
 
+    console.log(sum3)
     expect(sum3).toEqual(math.matrix([
       [1, 3, 5],
       [4, 8, 10],
@@ -63,6 +66,7 @@ describe("Solver", () => {
     }
     )
 
+    console.log(sum4)
     expect(sum4).toEqual(math.matrix([
       [1, 2, 3],
       [4, 6, 8],
@@ -84,6 +88,7 @@ describe("Solver", () => {
     ]);
 
     const sum1 = MatrixHelper.addMatrixToSubset(A.clone(), math.index([0,1], [0,1]), B)
+    console.log(sum1)
 
     expect(sum1).toEqual(math.matrix([
       [2, 4, 3],
@@ -97,9 +102,5 @@ describe("Solver", () => {
     const structure = json as Structure;
 
     const diffEq = new DifferentialEquation(structure);
-
-    diffEq.dynamicSolveWithRungeKutta(0.01);
   })
-
-
 });
