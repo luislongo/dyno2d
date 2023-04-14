@@ -67,8 +67,8 @@
     },
     {
       "id": "3",
-      "start": 2,
-      "end": 4,
+      "start": 1,
+      "end": 3,
       "E" : 1.0,
       "A" : 1.0
     }
@@ -76,7 +76,7 @@
   "restrictions": [
     {
       "joint": 0,
-      "type": "y"
+      "type": "xy"
     },
     {
       "joint": 2,
@@ -100,6 +100,13 @@
     }
    ],
   "dynamicCharges": [
+    {
+      "joint" : 1,
+      "value" : 0.5,
+      "phase" : 1.57,
+      "frequency" : 1.0
+    }
+    
     ],
     "pointMasses": [
       {
