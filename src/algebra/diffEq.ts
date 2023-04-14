@@ -74,12 +74,17 @@ export class DifferentialEquation {
 
   dynamicSolveWithRungeKutta = (dt: number) => {
     this.t = this.t + dt;
+    const Qt = this.Q.clone();
+    
+    this.str.dynamicCharges.forEach((charge) => {
+      const {joint, value, frequency} = charge;
+      const index = 2*joint;
 
-    console.log(this.freeDoFs);
-    this.redQ = this.Q.subset(
-      MATH.index(this.freeDoFs, 0)
-    ).map((value) => {
-      return value * MATH.cos(this.t);
+      Qt.set([index, 0], Qt.get([index, 0]) + value * MATH.cos(frequency * this.t));
+    });
+
+    this.redQ = Qt.subset(MATH.index(this.freeDoFs, 0)).map((value) => {
+      return value;
   });
 
     console.log(this.redQ)

@@ -26,7 +26,27 @@ function App() {
     sphere.position.set(joint.position.x, joint.position.y, 2.5);
        
     return [...acc, sphere]
-  }, [] as Three.Mesh[]);;
+  }, [] as Three.Mesh[]);
+  const dynamicChargesMeshes = str.dynamicCharges.reduce((acc, charge, id) => {
+    const shape = new Three.Shape()
+      .moveTo(0, -0.025)
+      .lineTo(0.5, -0.025)
+      .lineTo(0.5, -0.1)
+      .lineTo(0.65, 0)
+      .lineTo(0.5, 0.1)
+      .lineTo(0.5, 0.025)
+      .lineTo(0, 0.025)
+      .lineTo(0, -0.025);
+    const geometry = new Three.ShapeGeometry(shape);
+    const material = new Three.MeshBasicMaterial({ color: 0xff0000 });
+    const arrow = new Three.Mesh(geometry, material);
+
+    const position = str.joints[charge.joint].position;
+    arrow.position.set(position.x, position.y, 2.5);
+    
+    return [...acc, arrow]
+  }, [] as Three.Mesh[]);
+
   const loading = useRef<boolean>(true);
 
   useEffect(() => {
@@ -121,6 +141,7 @@ function App() {
 
     //Draw displacement
     scene.add(...displacementMarkers)
+    scene.add(...dynamicChargesMeshes)
 
     //Draw masses
     pointMasses.forEach((mass) => {
@@ -145,11 +166,16 @@ function App() {
     if(loading.current) return;
 
     diffEq.dynamicSolveWithRungeKutta(0.01);
-    const { joints } = mockStr as Structure;
+    const { joints, dynamicCharges } = mockStr as Structure;
     displacementMarkers.forEach((marker, id) => {
       marker.position.x = joints[id].position.x + diffEq.U.get([2* id, 0])
       marker.position.y = joints[id].position.y + diffEq.U.get([2*id + 1, 0])
     })
+
+    dynamicCharges.forEach((charge, id) => {
+      dynamicChargesMeshes[id].rotation.z = charge.phase + charge.frequency * diffEq.t
+    })
+
     renderer.render(scene, camera);
   }, 1000 / 60);
 

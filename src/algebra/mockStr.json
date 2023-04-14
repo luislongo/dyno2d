@@ -92,37 +92,18 @@
       "joint": 0,
       "type": "xy"
     },
-    {
-      "joint": 2,
-      "type": "y"
-    },
+
     {
       "joint": 4,
-      "type": "y"
+      "type": "xy"
     }
   ],
-  "staticCharges": [
-    {
-      "joint": 0,
-      "value": 2.0,
-      "phase": 0.0
-    },
-    {
-      "joint": 1,
-      "value": 1.0,
-      "phase": 1.5707963267948966
-    },
-    {
-      "joint": 2,
-      "value": 1.0,
-      "phase": 2
-    }
-  ],
+  "staticCharges": [ ],
   "dynamicCharges": [
     {
       "joint": 0,
-      "value": 1.0,
-      "phase": 0.0,
+      "value": 20.0,
+      "phase": 10.0,
       "frequency": 1.0
     },
     {
@@ -136,7 +117,7 @@
       "value": 1.0,
       "phase": 2,
       "frequency": 1.0
-    }],
+  }],
     "pointMasses": [
       {
         "joint": 0,
