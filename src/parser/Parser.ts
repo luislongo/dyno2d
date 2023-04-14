@@ -23,26 +23,15 @@ export type Edge = {
   A: number;
 };
 
-export type StaticCharge = {
+export type StaticCharges = {
   joint: number;
   value: number;
   phase: number;
 };
 
-export type DynamicCharges = StaticCharge & {
-  frequency: number;
-};
-
-export type PointMass = {
-  joint: number;
-  value: number;
-}
-
 export type Structure = {
   joints: Joint[];
   edges: Edge[];
   restrictions: Restriction[];
-  staticCharges: StaticCharge[];
-  dynamicCharges: DynamicCharges[];
-  pointMasses:  PointMass[];
+  staticCharges: StaticCharges[];
 };
