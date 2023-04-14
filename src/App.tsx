@@ -16,17 +16,27 @@ function App() {
     0.1,
     1000
     );
-
   const canvasRef = useRef<HTMLDivElement>(null);
+  const str = mockStr as Structure;
+  const diffEq = new DifferentialEquation(str);
+  const displacementMarkers = str.joints.reduce((acc, joint, id) => {
+    const geometry = new Three.SphereGeometry(0.05, 32, 32);
+    const material = new Three.MeshBasicMaterial({ color: 0x00ffff });
+    const sphere = new Three.Mesh(geometry, material);
+    sphere.position.set(joint.position.x, joint.position.y, 2.5);
+       
+    return [...acc, sphere]
+  }, [] as Three.Mesh[]);;
+  const loading = useRef<boolean>(true);
 
   useEffect(() => {
     canvasRef.current?.appendChild(renderer.domElement);
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.position.z = 5;
 
-    const { joints, edges, restrictions, staticCharges } = mockStr as Structure;
+    const { joints, edges, restrictions, staticCharges, pointMasses, dynamicCharges } = mockStr as Structure;
     // Draw joints
-    Object.values(joints).forEach((joint) => {
+    joints.forEach((joint) => {
       const geometry = new Three.SphereGeometry(0.1, 32, 32);
       const material = new Three.MeshBasicMaterial({ color: 0xffff00 });
       const sphere = new Three.Mesh(geometry, material);
@@ -110,23 +120,21 @@ function App() {
     });
 
     //Draw displacement
-    const diffEq = new DifferentialEquation(mockStr  as Structure);
-    console.log(diffEq.U)
-    joints.forEach((joint, id) => {
+    scene.add(...displacementMarkers)
+
+    //Draw masses
+    pointMasses.forEach((mass) => {
       const geometry = new Three.SphereGeometry(0.05, 32, 32);
-      const material = new Three.MeshBasicMaterial({ color: 0x00ffff });
+      const material = new Three.MeshBasicMaterial({ color: 0x000000 });
       const sphere = new Three.Mesh(geometry, material);
 
-      const u = {
-        x: diffEq.U.get([2*id, 0]),
-        y: diffEq.U.get([2*id + 1, 0])
-      }
+      const position = joints[mass.joint].position;
+      sphere.position.set(position.x, position.y, 1.5);
 
-      console.log(u)
-
-      sphere.position.set(joint.position.x + u.x, joint.position.y + u.y, 1.5);
       scene.add(sphere);
-    });
+    })
+
+    loading.current = false;
 
     return () => {
       canvasRef.current?.removeChild(renderer.domElement);
@@ -134,6 +142,14 @@ function App() {
   }, []);
 
   setInterval(() => {
+    if(loading.current) return;
+
+    diffEq.dynamicSolveWithRungeKutta(1/60);
+    const { joints } = mockStr as Structure;
+    displacementMarkers.forEach((marker, id) => {
+      marker.position.x = joints[id].position.x + diffEq.U.get([2* id, 0])
+      marker.position.y = joints[id].position.y + diffEq.U.get([2*id + 1, 0])
+    })
     renderer.render(scene, camera);
   }, 1000 / 60);
 

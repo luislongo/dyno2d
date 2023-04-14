@@ -35,6 +35,13 @@
       "end": 2,
       "E" : 1.0,
       "A" : 1.0
+    },
+    {
+      "id": "2",
+      "start": 0,
+      "end": 2,
+      "E" : 9,
+      "A" : 1.0
     }
   ],
   "restrictions": [
@@ -44,13 +51,13 @@
     },
     {
       "joint": 2,
-      "type": "xy"
+      "type": "y"
     }
   ],
   "staticCharges": [
     {
       "joint": 0,
-      "value": 1.0,
+      "value": 2.0,
       "phase": 0.0
     },
     {
@@ -63,5 +70,40 @@
       "value": 1.0,
       "phase": 2
     }
+  ],
+  "dynamicCharges": [
+    {
+      "joint": 0,
+      "value": 1.0,
+      "phase": 0.0,
+      "frequency": 1.0
+    },
+    {
+      "joint": 1,
+      "value": 1.0,
+      "phase": 1.5707963267948966,
+      "frequency": 1.0
+    },
+    {
+      "joint": 2,
+      "value": 1.0,
+      "phase": 2,
+      "frequency": 1.0
+    }],
+    "pointMasses": [
+      {
+        "joint": 0,
+        "value": 0.1
+      },
+      {
+        "joint": 1,
+        "value": 0.001
+      },
+      {
+        "joint": 2,
+        "value": 0.001
+      }
+  
   ]
+
 }
