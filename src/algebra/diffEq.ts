@@ -1,20 +1,28 @@
 import * as MATH from "mathjs";
-import { Edge, StaticCharges, Structure } from "../parser/Parser";
+import { Edge, PointMass, StaticCharge, Structure } from "../parser/Parser";
 import MatrixHelper from "./MatrixHelper";
 
 export class DifferentialEquation {
   K: MATH.Matrix;
   Q: MATH.Matrix;
   U: MATH.Matrix;
+  M: MATH.Matrix;
+  freeDoFs: number[];
+  redK : MATH.Matrix;
+  redQ : MATH.Matrix;
+  redM : MATH.Matrix;
   str: Structure;
+  t: number = 0;
 
   constructor(str: Structure) {
-    const {edges, joints, restrictions, staticCharges} = str;
+    const {edges, joints, restrictions, staticCharges, pointMasses} = str;
     this.str = str;
 
     const n = Object.keys(joints).length;
     this.K = MATH.matrix(MATH.zeros(2*n, 2*n));
+    this.M = MATH.matrix(MATH.zeros(2*n, 2*n));
     this.Q = MATH.matrix(MATH.zeros(2*n, 1));
+    this.U = MATH.matrix(MATH.zeros(2 * n, 1));
 
     edges.forEach((edge) => {
       this.composeIntoK(edge, str);
@@ -24,8 +32,9 @@ export class DifferentialEquation {
       this.composeIntoQ(charge);
     })
 
-    console.log(this.K);
-    console.log(this.Q);
+    pointMasses.forEach((pointMass) => {
+      this.composeIntoM(pointMass);
+    })
 
     const doFs = Array.from(Array(2*n).keys());
     const restrictedDoFs = restrictions.reduce((acc, {joint, type}) => {
@@ -46,25 +55,69 @@ export class DifferentialEquation {
 
     const freeDoFs = MATH.setDifference(doFs, restrictedDoFs);
 
-    const reducedK = this.K.subset(MATH.index(freeDoFs, freeDoFs));
-    const reducedQ = this.Q.subset(MATH.index(freeDoFs, 0));
+    this.freeDoFs = freeDoFs;
+    this.redK = this.K.subset(MATH.index(freeDoFs, freeDoFs));
+    this.redQ = this.Q.subset(MATH.index(freeDoFs, 0));
+    this.redM = this.M.subset(MATH.index(freeDoFs, freeDoFs));
 
-    console.log('reducedK', reducedK);
-    console.log('reducedQ', reducedQ);
+    // this.staticSolve();
+  }
 
-    const reducedU = MATH.lusolve(reducedK, reducedQ);
-    console.log('reducedU', reducedU);
+  staticSolve = () => {
+    const reducedU = MATH.lusolve(this.redK, this.redQ);
 
-    const U = MATH.matrix(MATH.zeros(2 * n, 1));
-    freeDoFs.forEach((freeDoF, index) => {
-      U.set([freeDoF, 0], reducedU.get([index, 0]));
+    this.freeDoFs.forEach((freeDoF, index) => {
+      this.U.set([freeDoF, 0], reducedU.get([index, 0]));
     }
     );
-    console.log('U', U);
+  }
 
-    this.U = U;
-  } 
+  dynamicSolveWithRungeKutta = (dt: number) => {
+    this.t = this.t + dt;
+    const Qt = this.Q.clone();
+    
+    this.str.dynamicCharges.forEach((charge) => {
+      const {joint, value, frequency} = charge;
+      const index = 2*joint;
 
+      Qt.set([index, 0], Qt.get([index, 0]) + value * MATH.cos(frequency * this.t + charge.phase));
+    });
+
+    this.redQ = Qt.subset(MATH.index(this.freeDoFs, 0)).map((value) => {
+      return value;
+  });
+
+    console.log(this.redQ)
+
+    const reducedU = this.U.subset(MATH.index(this.freeDoFs, 0));
+    const reducedV = MATH.multiply(this.redM, reducedU);
+    const reducedA = MATH.multiply(MATH.inv(this.redM), MATH.subtract(this.redQ, MATH.multiply(this.redK, reducedU)));
+
+    const k1 = MATH.multiply(dt, reducedV);
+    const l1 = MATH.multiply(dt, reducedA);
+
+    const k2 = MATH.multiply(dt, MATH.add(reducedV, MATH.multiply(0.5, l1)));
+    const l2 = MATH.multiply(dt, MATH.add(reducedA, MATH.multiply(0.5, l1)));
+
+    const k3 = MATH.multiply(dt, MATH.add(reducedV, MATH.multiply(0.5, l2)));
+    const l3 = MATH.multiply(dt, MATH.add(reducedA, MATH.multiply(0.5, l2)));
+
+    const k4 = MATH.multiply(dt, MATH.add(reducedV, l3));
+    const l4 = MATH.multiply(dt, MATH.add(reducedA, l3));
+
+    const k = k1.map((value, index, matrix) => {
+      return (value + 2 * k2.get(index) + 2 * k3.get(index) + k4.get(index)) / 6;
+    });
+    const  l = l1.map((value, index, matrix) => {
+      return (value + 2 * l2.get(index) + 2 * l3.get(index) + l4.get(index)) / 6;
+    });
+    
+    const newReducedU = MATH.add(reducedU, k);
+
+    this.freeDoFs.forEach((freeDoF, index) => {
+      this.U.set([freeDoF, 0], newReducedU.get([index, 0]));
+    });
+  }
 
   composeIntoK = ({start, end, E, A } : Edge, { joints } : Structure) => {
     const startJoint = joints[start];
@@ -109,10 +162,14 @@ export class DifferentialEquation {
       
     }
 
-    composeIntoQ = ({joint: jointId, value, phase} : StaticCharges) => {
-      const q = value * Math.cos(phase);
-      const p = value * Math.sin(phase);
+  composeIntoQ = ({joint: jointId, value, phase} : StaticCharge) => {
+    const q = value * Math.cos(phase);
+    const p = value * Math.sin(phase);
 
-      MatrixHelper.addMatrixToSubset(this.Q, MATH.index([2*jointId, 2*jointId+1], [0]), MATH.matrix([[q], [p]]));
-    }
+    MatrixHelper.addMatrixToSubset(this.Q, MATH.index([2*jointId, 2*jointId+1], [0]), MATH.matrix([[q], [p]]));
+  }
+
+  composeIntoM = ({joint: jointId, value} : PointMass) => {
+    MatrixHelper.addMatrixToSubset(this.M, MATH.index([2*jointId, 2*jointId+1], [2*jointId, 2*jointId+1]), MATH.matrix([[value, 0], [0, value]]));
+  }
 }
