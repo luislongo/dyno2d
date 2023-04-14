@@ -110,7 +110,7 @@ function App() {
       const triangle = new Three.Mesh(geometry, material);
       const position = joints[restriction.joint].position;
 
-      if (restriction.type === "y") {
+      if (restriction.type === "x") {
         triangle.rotation.z = Math.PI / 2;
       }
 
@@ -144,7 +144,7 @@ function App() {
   setInterval(() => {
     if(loading.current) return;
 
-    diffEq.dynamicSolveWithRungeKutta(1/60);
+    diffEq.dynamicSolveWithRungeKutta(0.01);
     const { joints } = mockStr as Structure;
     displacementMarkers.forEach((marker, id) => {
       marker.position.x = joints[id].position.x + diffEq.U.get([2* id, 0])
@@ -171,6 +171,7 @@ function App() {
     if (e.code === "KeyS") {
       camera.position.y -= 0.1;
     }
+
   });
 
   return (
