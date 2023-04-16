@@ -19,6 +19,30 @@ function App() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const str = mockStr as Structure;
   const diffEq = new DifferentialEquation(str);
+
+  const restrictionMeshes = str.restrictions.reduce((acc, restriction, id) => {
+    const shape = new Three.Shape();
+    shape.moveTo(0, 0);
+    shape.lineTo(0.25, -0.25);
+    shape.lineTo(-0.25, -0.25);
+    shape.lineTo(0, 0);
+
+    const geometry = new Three.ShapeGeometry(shape);
+    const material = new Three.MeshBasicMaterial({ color: 0x0000ff });
+
+    const triangle = new Three.Mesh(geometry, material);
+    const position = str.joints[restriction.joint].position;
+
+    if (restriction.type === "x") {
+      triangle.rotation.z = Math.PI / 2;
+    }
+
+    triangle.position.set(position.x, position.y, 0);
+
+    scene.add(triangle);
+
+    return [...acc, triangle]
+  }, [] as Three.Mesh[]);
   const displacementMarkers = str.joints.reduce((acc, joint, id) => {
     const geometry = new Three.SphereGeometry(0.05, 32, 32);
     const material = new Three.MeshBasicMaterial({ color: 0x00ffff });
@@ -108,28 +132,6 @@ function App() {
     const { joints, restrictions } = mockStr as Structure;
 
   
-    // Draw restrictions
-    restrictions.forEach((restriction) => {
-      const shape = new Three.Shape();
-      shape.moveTo(0, 0);
-      shape.lineTo(0.25, -0.25);
-      shape.lineTo(-0.25, -0.25);
-      shape.lineTo(0, 0);
-
-      const geometry = new Three.ShapeGeometry(shape);
-      const material = new Three.MeshBasicMaterial({ color: 0x0000ff });
-
-      const triangle = new Three.Mesh(geometry, material);
-      const position = joints[restriction.joint].position;
-
-      if (restriction.type === "x") {
-        triangle.rotation.z = Math.PI / 2;
-      }
-
-      triangle.position.set(position.x, position.y, 0);
-
-      scene.add(triangle);
-    });
 
     //Draw displacement
     scene.add(...displacementMarkers)
@@ -138,6 +140,7 @@ function App() {
     scene.add(...edgeMeshes)
     scene.add(...jointMeshes)
     scene.add(...pointMassMeshes)
+    scene.add(...restrictionMeshes)
 
     loading.current = false;
 
@@ -150,7 +153,14 @@ function App() {
     if(loading.current) return;
 
     diffEq.dynamicSolveWithRungeKutta(0.01);
-    const { joints, dynamicCharges, edges, staticCharges } = mockStr as Structure;
+    const { joints, dynamicCharges, edges, staticCharges, restrictions } = mockStr as Structure;
+    
+    restrictions.forEach((restriction, id) => {
+      restrictionMeshes[id].position.x = joints[restriction.joint].position.x + diffEq.U.get([2* restriction.joint, 0])
+      restrictionMeshes[id].position.y = joints[restriction.joint].position.y + diffEq.U.get([2* restriction.joint + 1, 0])
+      })
+    
+
     displacementMarkers.forEach((marker, id) => {
       marker.position.x = joints[id].position.x + diffEq.U.get([2* id, 0])
       marker.position.y = joints[id].position.y + diffEq.U.get([2*id + 1, 0])
